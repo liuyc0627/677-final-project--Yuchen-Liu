@@ -1,0 +1,138 @@
+---
+title: "677 final project"
+author: "Yuchen Liu"
+date: '2022-05-12'
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+#4.25
+library(orderstats)
+os5 <- order_probs(1, 1/16 ,5)
+summary(os5)
+os10 <- order_probs(1, 1/31 ,10)
+summary(os10)
+```
+
+
+```{r}
+#4.27
+jan<- c(0.15, 0.25, 0.10, 0.20, 1.85, 1.97, 0.80, 0.20, 0.10, 0.50, 0.82, 0.40,
+      1.80, 0.20, 1.12, 1.83, 0.45, 3.17, 0.89, 0.31, 0.59, 0.10, 0.10, 0.90,
+      0.10, 0.25, 0.10, 0.90)
+
+jul<- c(0.30, 0.22, 0.10, 0.12, 0.20, 0.10, 0.10, 0.10, 0.10, 0.10, 0.10, 0.17,
+      0.20, 2.80, 0.85, 0.10, 0.10, 1.23, 0.45, 0.30, 0.20, 1.20, 0.10, 0.15,
+      0.10, 0.20, 0.10, 0.20, 0.35, 0.62, 0.20, 1.22, 0.30, 0.80, 0.15, 1.53,
+      0.10, 0.20, 0.30, 0.40, 0.23, 0.20, 0.10, 0.10, 0.60, 0.20, 0.50, 0.15,
+      0.60, 0.30, 0.80, 1.10, 0.20, 0.10, 0.10, 0.10, 0.42, 0.85, 1.60, 0.10,
+      0.25, 0.10, 0.20, 0.10)
+
+#part a
+summary(jan)
+summary(jul)
+# we can see the mean and median in January's rainfall is higher than the july. The minimum of january and july are the same but the maximum are higher in january. 
+
+#part b
+janq <- qqnorm(jan, pch = 1, frame = FALSE)
+julq <- qqnorm(jul, pch = 1, frame = FALSE)
+
+#From the plots, we can see that both of these two datasets do not follow the normal distributions. So we need to use the gamma model. 
+
+#part c
+set.seed(2022)
+library(fitdistrplus)
+library(survival)
+library(ProfileLikelihood)
+janfg <- fitdist(jan, distr = "gamma", method = "mle")
+summary(janfg)
+julfg <- fitdist(jul, distr = "gamma", method = "mle")
+summary(julfg)
+janfg
+# we can see the results of the MLEs of January dataset is 1.47 and the standard error is 0.44.
+julfg
+# we can see the results of the MLEs of July dataset is 3.04 and the standard error is 0.59.
+
+plot(janfg)
+plot(julfg)
+
+#part d
+qqjan <- qgamma(ppoints(length(jan)), shape = 2, rate = 1)
+plot(qqjan)
+qqjul <- qgamma(ppoints(length(jul)), shape = 2, rate = 1)
+plot(qqjul)
+
+```
+
+
+```{r}
+#4.39
+library(MASS)
+weights<-c(0.4, 1.0, 1.9, 3.0, 5.5, 8.1, 12.1, 25.6, 115.0, 119.5, 154.5, 157.0, 175.0, 419.0, 423.0, 440.0, 655.0, 680.0, 50.0, 56.0, 70.0, 115.0, 179.0, 180.0, 406.0, 1320.0, 4603.0, 5712.0)
+hist(weights)
+box<-boxcox(lm(weights ~ 1))
+new_w <- log(weights)
+hist(new_w)
+shapiro.test(new_w)
+```
+
+
+```{r}
+#rainfall
+library(readxl)
+library(magrittr)
+library(dplyr)
+library(tidyr)
+library(stats4)
+library(maxLik)
+rf<-read_excel("rain.xlsx")
+rff<-rf %>% pivot_longer(cols = `1960`:`1964`) %>% na.omit()
+#rll <- function(mean, log.sd) {-sum(dnorm(rff, mean, exp(log.sd), log=TRUE))}
+#rll <- function(theta) log(theta) - theta*rff
+#gradlik <- function(theta) 1/theta - rff
+#hesslik <- function(theta) -100/theta^2
+#mle <- maxLik(gradlik, start=1, control=list(printLevel=2))
+mle <- fitdistr(rff$value, "normal")
+est<-mle$estimate
+summary(est)
+summary(rff)
+#We can see from the estimated paramaters, the mean is 0.2947 and the median is also 0.2947.And I think the distribution is not very accurate. 
+
+
+wet<-filter(rff, rff$value>=0.3299)
+summary(wet)
+sum(wet$name==1960)
+sum(wet$name==1961)
+sum(wet$name==1962)
+sum(wet$name==1963)
+sum(wet$name==1964)
+# we can see that from the dataset, 1961 is the most wet year. There are 16 times in average in this year has heary rainfall from each storm. And 1962 and 1964 are also wetter than other years. 1963 and 1960 are the dryer years. And I think wet years are wet because there were more storms in these year. 
+
+
+#After we done the analysis part, I think we should focus more on the reasons of heary rainfall and do some research of it. 
+```
+
+
+
+```{r}
+#What I have done in this project and the future plan.
+
+#My coding skills are not good from the begining of our program. However, I think I had a improvement after this whole year learning. Although it's not good enough than other classmates, right now I can finish a thorough project by myself. In this project, I do face a lot of problems. Each line of codes have some bugs in the beginning, but I Googled it and get solved it in the end. For the plan of future work is continue to learn and practice coding skills and try to be a good data analyst. 
+
+```
+
+
+
